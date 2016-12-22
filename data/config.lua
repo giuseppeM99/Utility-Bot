@@ -8,7 +8,9 @@ do local _ = {
     "mute",
     "delmsg",
     "id",
-    "moderation"
+    "moderation",
+    "user",
+    "leave",
   },
   moderation = {
     data = "data/moderation.json"
