@@ -21,6 +21,14 @@ cd Utility-Bot
 
 There are two more scripts to launch the bot: `launchd.sh` will run tg-cli over gdb, `launchf.sh` will take care of restarting the bot in case it crashes, deleting tg-cli's `state` file to prevent reparsing buggy/broken messages.
 
+Usage
+------------
+For the correct usage of Utility-Bot, you need:
+1) A Bot Admin. You can use either a clone of an official supported bot or you can make your own
+2) A Main control group (Private), where there have to be the sudoers (userbot, apibot and Creators)
+
+You must edit the file data/config.lua : insert the sudoers ids and the main group id
+
 
 Enable more [`plugins`](https://github.com/LucentW/s-uzzbot/tree/master/plugins)
 -------------
@@ -38,10 +46,13 @@ $ sudo start utility-bot # To start it
 $ sudo stop utility-bot # To stop it
 ```
 
-
+Official supported bot
 ------------
-Credits:
+- [@GroupHelpBot](https://telegram.me/GroupHelpBot)
+- [@ControlPanelGroupBot](https://telegram.me/ControlPanelGroupBot)
 
+Credits:
+------------
 - [@LucentW](https://telegram.me/LucentW) for the original [s-uzzbot](https://github.com/LucentW/s-uzzbot.git)
 - [@BruninoIt](https://telegram.me/BruninoIt) for the idea of a complementary userbot
 - [@giuseppeM99](https://telegram.me/giuseppeM99) 
