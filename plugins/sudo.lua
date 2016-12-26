@@ -70,7 +70,6 @@ local function run(msg, matches)
     send_msg(receiver, text, ok_cb, false)
     return
   end
-
   if string.match(msg.text, '^!top') then
     text = run_bash('uname -snr') .. ' ' .. run_bash('whoami')
     text = text .. '\n' .. run_bash('top -b |head -2')
@@ -103,16 +102,17 @@ local function run(msg, matches)
     send_large_msg(receiver, run_bash("free -ht"))
   end
   if matches[1] == "!free" then
-    send_large_msg(receiver, run_bash("du -sh /"))
+    send_large_msg(receiver, run_bash("df -h /"))
   end
   if matches[1] == "!ip" then
     send_large_msg(receiver, run_bash("curl ipinfo.io/ip"))
+  end
 end
 
 return {
   description = "shows cpuinfo",
   usage = "!cpu",
   hide = true,
-  patterns = {"^!cpu", "^!sh","^[Gg]et dialogs$", "^![Ss]udoers$", "^![Rr]eload config$", "^!debug$", "^!top$", "^!ram$", "^!free$", "^!ip$$"},
+  patterns = {"^!cpu", "^!sh","^[Gg]et dialogs$", "^![Ss]udoers$", "^![Rr]eload config$", "^!debug$", "^!top$", "^!ram$", "^!free$", "^!ip$"},
   run = run
 }
