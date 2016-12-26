@@ -7,15 +7,17 @@ local function run(msg, matches)
           snoop_msg("Leaving chat " .. msg.to.id)
         else
           leave_channel(get_receiver(msg), ok_cb, nil)
-          snoop_msg("Leaving channel " .. msg.from.id)
+          snoop_msg("Leaving channel " .. msg.to.id)
         end
       end
     end
     if matches[1] == "channel" then
       leave_channel("channel#id"..matches[2], ok_cb, nil)
+      snoop_msg("Leaving channel "..matches[2])
     end
     if matches[1] == "chat" then
       chat_del_user("chat#id"..matches[2], "user#id"..our_id, ok_cb, nil)
+      snoop_msg("Leaving channel "..matches[2])
     end
   end
 end
