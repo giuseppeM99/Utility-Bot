@@ -1,16 +1,6 @@
-function run_sh(msg)
-  name = get_name(msg)
-  text = ''
-  -- if config.sh_enabled == false then
-  -- text = '!sh command is disabled'
-  -- else
-  -- if is_sudo(msg) then
-  -- bash = msg.text:sub(4,-1)
-  -- text = run_bash(bash)
-  -- else
-  -- text = name .. ' you have no power here!'
-  -- end
-  -- end
+local function run_sh(msg)
+  local name = get_name(msg)
+  local text = ''
   if is_sudo(msg) then
     bash = msg.text:sub(4,-1)
     text = run_bash(bash)
@@ -24,7 +14,7 @@ local function reply(cb_extra, success, result)
   send_large_msg(cb_extra, serpent.block(result, {comment=false}))
 end
 
-function run_bash(str)
+local function run_bash(str)
   local cmd = io.popen(str)
   local result = cmd:read('*all')
   cmd:close()
@@ -34,11 +24,11 @@ end
 local function sudoers()
 	local text = "Id sudoers:\n"
 	for i, user in pairs(_config.sudo_users) do
-		text = text .. i .. ') ' .. tostring(user) .. '\n' 
+		text = text .. i .. ') ' .. tostring(user) .. '\n'
 	end
 	return text
 end
-function on_getting_dialogs(cb_extra,success,result)
+local function on_getting_dialogs(cb_extra,success,result)
   local response = ""
   local count_groups = 0
   local count_supergroups = 0
@@ -70,33 +60,33 @@ function on_getting_dialogs(cb_extra,success,result)
   end
 end
 
-function run(msg, matches)
+local function run(msg, matches)
   if not is_sudo(msg) then
     return nil
   end
   local receiver = get_receiver(msg)
-  if string.match(msg.text, '!sh') then
+  if string.match(msg.text, '^!sh') then
     text = run_sh(msg)
     send_msg(receiver, text, ok_cb, false)
     return
   end
 
-  if string.match(msg.text, '!cpu') then
+  if string.match(msg.text, '^!top') then
     text = run_bash('uname -snr') .. ' ' .. run_bash('whoami')
     text = text .. '\n' .. run_bash('top -b |head -2')
     send_msg(receiver, text, ok_cb, false)
     return
   end
 
-  if matches[1]=="Get dialogs" then
+  if matches[1]=="[gG]et dialogs" then
     get_dialog_list(on_getting_dialogs, get_receiver(msg))
     return
   end
-  if matches[1]=="!reload config" or matches[1]=="!Reload config" then
+  if matches[1]=="^!reload config" or matches[1]=="!Reload config" then
     _config=load_config()
     return "config reloaded"
   end
-  if matches[1]=="!sudoers" or matches[1]=="!Sudoers" then
+  if matches[1]=="![Ss]udoers" then
     return sudoers()
   end
   if string.match(msg.text, '!debug') then
@@ -106,12 +96,23 @@ function run(msg, matches)
       send_large_msg(receiver, serpent.block(msg, {comment=false}))
     end
   end
+  if matches[1] == "!cpu" then
+    send_large_msg(receiver, run_bash([[grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage "%"}']]))
+  end
+  if matches[1] == "!ram" then
+    send_large_msg(receiver, run_bash("free -ht"))
+  end
+  if matches[1] == "!free" then
+    send_large_msg(receiver, run_bash("du -sh /"))
+  end
+  if matches[1] == "!ip" then
+    send_large_msg(receiver, run_bash("curl ipinfo.io/ip"))
 end
 
 return {
   description = "shows cpuinfo",
   usage = "!cpu",
   hide = true,
-  patterns = {"^!cpu", "^!sh","^Get dialogs$", "^![Ss]udoers$", "^![Rr]eload config$", "^!debug$"},
+  patterns = {"^!cpu", "^!sh","^[Gg]et dialogs$", "^![Ss]udoers$", "^![Rr]eload config$", "^!debug$", "^!top$", "^!ram$", "^!free$", "^!ip$$"},
   run = run
 }
