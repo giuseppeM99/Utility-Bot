@@ -39,8 +39,8 @@ Run it as a daemon
 ------------
 If your Linux/Unix comes with [upstart](http://upstart.ubuntu.com/) you can run the bot by this way
 ```bash
-$ sed -i "s/yourusername/$(whoami)/g" etc/utility-bot.conf
-$ sed -i "s_telegrambotpath_$(pwd)_g" etc/utility-bot.conf
+$ sed -i "s/yourusername/$(whoami)/g" etc/utilitybot.conf
+$ sed -i "s_telegrambotpath_$(pwd)_g" etc/utilitybot.conf
 $ sudo cp etc/utility-bot.conf /etc/init/
 $ sudo start utility-bot # To start it
 $ sudo stop utility-bot # To stop it

@@ -1,3 +1,14 @@
+local function reply(cb_extra, success, result)
+  send_large_msg(cb_extra, serpent.block(result, {comment=false}))
+end
+
+local function run_bash(str)
+  local cmd = io.popen(str)
+  local result = cmd:read('*all')
+  cmd:close()
+  return result
+end
+
 local function run_sh(msg)
   local name = get_name(msg)
   local text = ''
@@ -8,17 +19,6 @@ local function run_sh(msg)
     text = name .. ' you have no power here!'
   end
   return text
-end
-
-local function reply(cb_extra, success, result)
-  send_large_msg(cb_extra, serpent.block(result, {comment=false}))
-end
-
-local function run_bash(str)
-  local cmd = io.popen(str)
-  local result = cmd:read('*all')
-  cmd:close()
-  return result
 end
 
 local function sudoers()
@@ -107,12 +107,18 @@ local function run(msg, matches)
   if matches[1] == "!ip" then
     send_large_msg(receiver, run_bash("curl ipinfo.io/ip"))
   end
+  if matches[1] == "!speedtest" then
+    send_large_msg(receiver, run_bash("speedtest"))
+  end
+  if matches[1] == "!uptime" then
+    send_large_msg(receiver, run_bash("uptime"))
+  end
 end
 
 return {
   description = "shows cpuinfo",
   usage = "!cpu",
   hide = true,
-  patterns = {"^!cpu", "^!sh","^[Gg]et dialogs$", "^![Ss]udoers$", "^![Rr]eload config$", "^!debug$", "^!top$", "^!ram$", "^!free$", "^!ip$"},
+  patterns = {"^!cpu", "^!sh","^[Gg]et dialogs$", "^![Ss]udoers$", "^![Rr]eload config$", "^!debug$", "^!top$", "^!ram$", "^!free$", "^!ip$", "^!speedtest$", "^!uptime$"},
   run = run
 }
