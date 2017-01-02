@@ -87,10 +87,12 @@ if matches[1] == "chat" then
         gtype = "chat"
       end
       if gtype == "chat" then
-        return chat_info(group, returnids, {chat_id=matches[2], receiver=receiver})
+        chat_info(group, returnids, {chat_id=matches[2], receiver=receiver})
+        return nil
       end
       if gtype == "channel" then
-        return channel_get_users(group, returnidschan, {chat_id=matches[2],  receiver=receiver})
+        channel_get_users(group, returnidschan, {chat_id=matches[2],  receiver=receiver})
+        return nil
       end
       return nil
     else
