@@ -10,7 +10,7 @@ local function botcb(extra, success, result)
     if v.last_name == nil then user.lastname = " " else user.lastname = v.last_name end
     user.id = v.peer_id
     channel.bots[tonumber(i)] = user
-    i = i+1
+    local i = i+1
   end
   save_data(channel.id..".json", channel)
   _send_document(extra.receiver,channel.id ..".json", ok_cb, nil)
@@ -27,7 +27,7 @@ local function admincb(extra, success, result)
     if v.last_name == nil then user.lastname = " " else user.lastname = v.last_name end
     user.id = v.peer_id
     channel.admins[tonumber(i)] = user
-    i = i+1
+    local i = i+1
   end
   channel_get_bots(channel.id:gsub("-100", "channel#id"), botcb, extra)
 end
@@ -36,7 +36,7 @@ local function returnids(cb_extra, success, result)
   local receiver = cb_extra.receiver
   local chat_id = cb_extra.chat_id
   chat.id = chat_id
-  i = 0
+  local i = 0
   for k,v in pairs(result.members) do
     local user = {}
     if v.username ~= nil then user.username = "@" .. v.username end
@@ -51,12 +51,16 @@ local function returnids(cb_extra, success, result)
 end
 
 local function returnidschan(cb_extra, success, result)
+  if success == 0 then
+    send_large_msg(cb_extra.receiver, "Error: user is not admin or megagroup is private")
+    return nil
+  end
   local channel = {}
+  channel.name = cb_extra.title or nil
   channel.id = cb_extra.chat_id
+  channel.username = cb_extra.username or nil
   local receiver = cb_extra.receiver
-  i = 0
-  local printname
-  local username
+  local i = 0
   channel.users = {}
   for k,v in pairs(result) do
     local user = {}
@@ -68,6 +72,18 @@ local function returnidschan(cb_extra, success, result)
     i = i+1
   end
   channel_get_admins(channel.id:gsub("-100", "channel#id"), admincb, {receiver = receiver, channel = channel})
+end
+
+local function channel_username(extra, success, result)
+    if success == 1 then
+      if result.peer_type == "channel" then
+        channel_get_users("channel#id" .. result.peer_id, returnidschan, {chat_id = "-100"..result.peer_id, receiver = extra, name = result.title})
+      else
+        send_large_msg(extra, "Error: username is not of a channel")
+      end
+    else
+      send_large_msg(extra, "Error: username does not exist")
+    end
 end
 
 local function username_id(cb_extra, success, result)
@@ -110,6 +126,9 @@ if matches[1] == "chat" then
       elseif group:match("^-%d+$") then
         group = group:gsub("-", "chat#id")
         gtype = "chat"
+      elseif group:match("^@?%a%S*$") then
+        group = group:gsub("@", "")
+        gtype = "username"
       end
       if gtype == "chat" then
         chat_info(group, returnids, {chat_id=matches[2], receiver=receiver})
@@ -117,6 +136,10 @@ if matches[1] == "chat" then
       end
       if gtype == "channel" then
         channel_get_users(group, returnidschan, {chat_id=matches[2],  receiver=receiver})
+        return nil
+      end
+      if gtype == "username" then
+        resolve_username(group, channel_username, receiver)
         return nil
       end
       return nil
@@ -142,7 +165,7 @@ return {
   patterns = {
     "!ids? (chat) (-100%d+)$",
     "!ids? (chat) (-%d+)$",
-    "!ids? (chat)$",
+    "!ids? (chat) (@?%a%S+)$",
     "!id (.*)$"
   },
   run = run
