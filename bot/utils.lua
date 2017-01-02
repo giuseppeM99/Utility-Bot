@@ -553,7 +553,7 @@ function send_large_msg_callback(cb_extra, success, result)
   if not text then
     return
   end
-  local text_len = string.len(text) or 0
+  local text_len = #text or 0
 
   if text_len > 0 then
     local num_msg = math.ceil(text_len / text_max)
