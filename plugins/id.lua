@@ -9,8 +9,8 @@ local function botcb(extra, success, result)
     user.name = v.first_name
     if v.last_name == nil then user.lastname = " " else user.lastname = v.last_name end
     user.id = v.peer_id
-    channel.bots[tonumber(i)] = user
-    local i = i+1
+    channel.bots[i] = user
+    i = i+1
   end
   save_data(channel.id..".json", channel)
   _send_document(extra.receiver,channel.id ..".json", ok_cb, nil)
@@ -26,8 +26,8 @@ local function admincb(extra, success, result)
     user.name = v.first_name
     if v.last_name == nil then user.lastname = " " else user.lastname = v.last_name end
     user.id = v.peer_id
-    channel.admins[tonumber(i)] = user
-    local i = i+1
+    channel.admins[i] = user
+    i = i+1
   end
   channel_get_bots(channel.id:gsub("-100", "channel#id"), botcb, extra)
 end
@@ -43,7 +43,7 @@ local function returnids(cb_extra, success, result)
     user.name = v.first_name
     user.lastname = v.last_name
     user.id = v.peer_id
-    chat[tonumber(i)] = user
+    chat[i] = user
     i = i+1
   end
   save_data(chat_id..".json", chat)
@@ -52,7 +52,9 @@ end
 
 local function returnidschan(cb_extra, success, result)
   if success == 0 then
-    send_large_msg(cb_extra.receiver, "Error: user is not admin or megagroup is private")
+    local userorid = cb_extra.chat_id
+    if cb_extra.username then userorid = cb_extra.username end    
+    send_large_msg(cb_extra.receiver, "Error: user is not admin or megagroup is private " .. userorid)
     return nil
   end
   local channel = {}
@@ -68,7 +70,7 @@ local function returnidschan(cb_extra, success, result)
     user.name = v.first_name
     user.lastname = v.last_name
     user.id = v.peer_id
-    channel.users[tonumber(i)] = user
+    channel.users[i] = user
     i = i+1
   end
   channel_get_admins(channel.id:gsub("-100", "channel#id"), admincb, {receiver = receiver, channel = channel})
@@ -82,13 +84,13 @@ local function channel_username(extra, success, result)
         send_large_msg(extra, "Error: username is not of a channel")
       end
     else
-      send_large_msg(extra, "Error: username does not exist")
+      send_large_msg(extra, "Error: username does not exist || I'm on flood wait")
     end
 end
 
 local function username_id(cb_extra, success, result)
   local user = {}
-  local receiver = cb_extra
+  local receiver = cb_extra.receiver
   local text = "Error: username does not exist"
   if success then
     if result.peer_type == 'channel' then
@@ -104,7 +106,10 @@ local function username_id(cb_extra, success, result)
       user.username = "@"..result.username
     end
     text = JSON.encode(user)
+  else
+    text = "!id "..cb_extra.username
   end
+  
   send_large_msg(receiver, text)
 end
 
@@ -156,7 +161,7 @@ if matches[1] == "chat" then
     end
   else
     local chat = get_receiver(msg)
-    resolve_username(matches[1]:gsub("@",""), username_id, receiver)
+    resolve_username(matches[1]:gsub("@",""), username_id, {receiver= receiver, username=matches[1]})
   end
   --delete_msg(msg.id, ok_cb, nil) --Decomment to enable autodelete of trigger message
 end
