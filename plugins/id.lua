@@ -1,3 +1,28 @@
+local function megagroupcb(extra, success, result)
+  local oldresult = extra.result
+  local user = {}
+  local amisure = true
+  user.name = oldresult.title
+  user.id = "-100"..oldresult.peer_id
+  user.username = "@"..oldresult.username
+if success == 0 then
+    user.type = "broadcast"
+  else
+    for k, v in pairs(result) do
+      if v.peer_id == our_id then
+        amisure = false
+        break
+      end
+    end
+    if amisure then
+      user.type = "supergroup"
+    else user.type = "channel" end
+  end
+  local text = JSON.encode(user)
+  send_large_msg(extra.receiver, text)
+  return nil
+end
+
 local function botcb(extra, success, result)
   local channel = {}
   channel = extra.channel
@@ -94,10 +119,7 @@ local function username_id(cb_extra, success, result)
   local text = "Error: username does not exist"
   if success then
     if result.peer_type == 'channel' then
-      user.type = "channel"
-      user.name = result.title
-      user.id = "-100"..result.peer_id
-      user.username = "@"..result.username
+      return channel_get_admins("channel#id".. result.peer_id, megagroupcb, {result = result, receiver = receiver})
     else
       user.type = "user"
       user.name = result.first_name
