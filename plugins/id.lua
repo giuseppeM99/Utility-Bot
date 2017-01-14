@@ -61,6 +61,7 @@ local function returnids(cb_extra, success, result)
   local receiver = cb_extra.receiver
   local chat_id = cb_extra.chat_id
   chat.id = chat_id
+  chat.title = result.title
   local i = 0
   for k,v in pairs(result.members) do
     local user = {}
@@ -83,9 +84,10 @@ local function returnidschan(cb_extra, success, result)
     return nil
   end
   local channel = {}
-  channel.name = cb_extra.title or nil
+  channel.title = cb_extra.title or nil
   channel.id = cb_extra.chat_id
   channel.username = cb_extra.username or nil
+  channel.about = cb_extra.about or nil
   local receiver = cb_extra.receiver
   local i = 0
   channel.users = {}
@@ -101,10 +103,15 @@ local function returnidschan(cb_extra, success, result)
   channel_get_admins(channel.id:gsub("-100", "channel#id"), admincb, {receiver = receiver, channel = channel})
 end
 
+local function channelinfo(extra, success, result)
+  channel_get_users("channel#id" .. result.peer_id, returnidschan, {chat_id = "-100"..result.peer_id, receiver = extra, title = result.title, about = result.about})
+end
+
+
 local function channel_username(extra, success, result)
     if success == 1 then
       if result.peer_type == "channel" then
-        channel_get_users("channel#id" .. result.peer_id, returnidschan, {chat_id = "-100"..result.peer_id, receiver = extra, name = result.title})
+        channel_get_users("channel#id" .. result.peer_id, returnidschan, {chat_id = "-100"..result.peer_id, receiver = extra, title = result.title, about = result.about})
       else
         send_large_msg(extra, "Error: username is not of a channel")
       end
@@ -162,7 +169,7 @@ if matches[1] == "chat" then
         return nil
       end
       if gtype == "channel" then
-        channel_get_users(group, returnidschan, {chat_id=matches[2],  receiver=receiver})
+        channel_info(group, channelinfo, receiver)
         return nil
       end
       if gtype == "username" then
@@ -178,7 +185,7 @@ if matches[1] == "chat" then
       if not is_chan_msg(msg) then
         chat_info(chat, returnids, {chat_id = "-" .. msg.to.id, receiver=chat})
       else
-        channel_get_users(chat, returnidschan, {chat_id="-100" .. msg.to.id, receiver=chat})
+        channel_info(chat, channelinfo, receiver)
       end
     end
   else
