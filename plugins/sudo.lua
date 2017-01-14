@@ -77,7 +77,7 @@ local function run(msg, matches)
     return
   end
 
-  if matches[1]=="[gG]et dialogs" then
+  if matches[1]=="Get dialogs" or matches[1] == "get dialogs" then
     get_dialog_list(on_getting_dialogs, get_receiver(msg))
     return
   end
@@ -85,7 +85,7 @@ local function run(msg, matches)
     _config=load_config()
     return "config reloaded"
   end
-  if matches[1]=="![Ss]udoers" then
+  if matches[1]=="!Sudoers" or matches[1] == "!sudoers" then
     return sudoers()
   end
   if string.match(msg.text, '!debug') then
