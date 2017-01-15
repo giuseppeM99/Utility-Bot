@@ -79,7 +79,7 @@ end
 local function returnidschan(cb_extra, success, result)
   if success == 0 then
     local userorid = cb_extra.chat_id
-    if cb_extra.username then userorid = cb_extra.username end    
+    if cb_extra.username then userorid = "@"..cb_extra.username end    
     send_large_msg(cb_extra.receiver, "Error: user is not admin or megagroup is private " .. userorid)
     return nil
   end
@@ -104,26 +104,26 @@ local function returnidschan(cb_extra, success, result)
 end
 
 local function channelinfo(extra, success, result)
-  channel_get_users("channel#id" .. result.peer_id, returnidschan, {chat_id = "-100"..result.peer_id, receiver = extra, title = result.title, about = result.about})
+  channel_get_users("channel#id" .. result.peer_id, returnidschan, {chat_id = "-100"..result.peer_id, receiver = extra, title = result.title, about = result.about, username = result.username})
 end
 
 
 local function channel_username(extra, success, result)
     if success == 1 then
       if result.peer_type == "channel" then
-        channel_get_users("channel#id" .. result.peer_id, returnidschan, {chat_id = "-100"..result.peer_id, receiver = extra, title = result.title, about = result.about})
+        channel_get_users("channel#id" .. result.peer_id, returnidschan, {chat_id = "-100"..result.peer_id, receiver = extra.receiver, title = result.title, about = result.about, username= result.username})
       else
-        send_large_msg(extra, "Error: username is not of a channel")
+        send_large_msg(extra.receiver, "Error: username is not of a channel @"..result.username)
       end
     else
-      send_large_msg(extra, "Error: username does not exist || I'm on flood wait")
+      send_large_msg(extra.receiver, "Error: username does not exist || I'm on flood wait @" .. extra.username)
     end
 end
 
 local function username_id(cb_extra, success, result)
   local user = {}
   local receiver = cb_extra.receiver
-  local text = "Error: username does not exist"
+  local text = "Error: username does not exist || I'm on flood wait @" .. extra.username
   if success then
     if result.peer_type == 'channel' then
       return channel_get_admins("channel#id".. result.peer_id, megagroupcb, {result = result, receiver = receiver})
@@ -135,8 +135,6 @@ local function username_id(cb_extra, success, result)
       user.username = "@"..result.username
     end
     text = JSON.encode(user)
-  else
-    text = "!id "..cb_extra.username
   end
   
   send_large_msg(receiver, text)
@@ -173,7 +171,7 @@ if matches[1] == "chat" then
         return nil
       end
       if gtype == "username" then
-        resolve_username(group, channel_username, receiver)
+        resolve_username(group, channel_username, {receiver=receiver, username=group})
         return nil
       end
       return nil
