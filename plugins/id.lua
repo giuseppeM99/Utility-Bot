@@ -73,7 +73,7 @@ local function returnids(cb_extra, success, result)
     i = i+1
   end
   save_data(chat_id..".json", chat)
-  _send_document(extra.receiver,chat_id..".json", ok_cb, nil)
+  _send_document(cb_extra.receiver,chat_id..".json", ok_cb, nil)
 end
 
 local function returnidschan(cb_extra, success, result)
@@ -123,8 +123,8 @@ end
 local function username_id(cb_extra, success, result)
   local user = {}
   local receiver = cb_extra.receiver
-  local text = "Error: username does not exist || I'm on flood wait @" .. extra.username
-  if success then
+  local text = "Error: username does not exist || I'm on flood wait @" .. cb_extra.username
+  if success == 1 then
     if result.peer_type == 'channel' then
       return channel_get_admins("channel#id".. result.peer_id, megagroupcb, {result = result, receiver = receiver})
     else

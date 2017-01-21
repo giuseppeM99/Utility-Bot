@@ -2,9 +2,7 @@ do
 
   local function parsed_url(link)
     local parsed_link = URL.parse(link)
-    vardump(parsed_link)
     local parsed_path = URL.parse_path(parsed_link.path)
-    vardump(parsed_path)
     return parsed_path[2]
   end
 

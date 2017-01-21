@@ -77,15 +77,15 @@ local function run(msg, matches)
     return
   end
 
-  if matches[1]=="Get dialogs" or matches[1] == "get dialogs" then
+  if matches[1]:lower() == "get dialogs" then
     get_dialog_list(on_getting_dialogs, get_receiver(msg))
     return
   end
-  if matches[1]=="^!reload config" or matches[1]=="!Reload config" then
+  if matches[1]:lower() == "!reload config" then
     _config=load_config()
     return "config reloaded"
   end
-  if matches[1]=="!Sudoers" or matches[1] == "!sudoers" then
+  if matches[1]:lower()== "!sudoers" then
     return sudoers()
   end
   if string.match(msg.text, '!debug') then
