@@ -188,7 +188,8 @@ if matches[1] == "chat" then
     end
   else
     local chat = get_receiver(msg)
-    resolve_username(matches[1]:gsub("@",""), username_id, {receiver= receiver, username=matches[1]})
+    local user = matches[1]:gsub("@", "")
+    resolve_username(user, username_id, {receiver= receiver, username=user})
   end
   --delete_msg(msg.id, ok_cb, nil) --Decomment to enable autodelete of trigger message
 end
