@@ -1,12 +1,12 @@
-local function megagroupcb(extra, success, result)
-  local oldresult = extra.result
-  local user = {}
+local function megagroupcb(cb_extra, success, result)
+  local oldresult = cb_extra.result
+  local channel = {}
   local amisure = true
-  user.name = oldresult.title
-  user.id = "-100"..oldresult.peer_id
-  user.username = "@"..oldresult.username
+  channel.title = oldresult.title
+  channel.id = "-100"..oldresult.peer_id
+  channel.username = "@"..oldresult.username
 if success == 0 then
-    user.type = "broadcast"
+    channel.type = "broadcast"
   else
     for k, v in pairs(result) do
       if v.peer_id == our_id then
@@ -15,17 +15,17 @@ if success == 0 then
       end
     end
     if amisure then
-      user.type = "supergroup"
-    else user.type = "channel" end
+      channel.type = "supergroup"
+    else channel.type = "channel" end
   end
-  local text = JSON.encode(user)
-  send_large_msg(extra.receiver, text)
+  local text = JSON.encode(channel)
+  send_large_msg(cb_extra.receiver, text)
   return nil
 end
 
-local function botcb(extra, success, result)
+local function botcb(cb_extra, success, result)
   local channel = {}
-  channel = extra.channel
+  channel = cb_extra.channel
   channel.bots = {}
   local i = 0
   for k, v in pairs(result) do
@@ -38,11 +38,11 @@ local function botcb(extra, success, result)
     i = i+1
   end
   save_data(channel.id..".json", channel)
-  _send_document(extra.receiver,channel.id ..".json", ok_cb, nil)
+  _send_document(cb_extra.receiver,channel.id ..".json", ok_cb, nil)
 end
-local function admincb(extra, success, result)
+local function admincb(cb_extra, success, result)
   local channel = {}
-  channel = extra.channel
+  channel = cb_extra.channel
   channel.admins = {}
   local i = 0
   for k, v in pairs(result) do
@@ -54,7 +54,7 @@ local function admincb(extra, success, result)
     channel.admins[i] = user
     i = i+1
   end
-  channel_get_bots(channel.id:gsub("-100", "channel#id"), botcb, extra)
+  channel_get_bots(channel.id:gsub("-100", "channel#id"), botcb, cb_extra)
 end
 local function returnids(cb_extra, success, result)
   local chat = {}
@@ -103,20 +103,20 @@ local function returnidschan(cb_extra, success, result)
   channel_get_admins(channel.id:gsub("-100", "channel#id"), admincb, {receiver = receiver, channel = channel})
 end
 
-local function channelinfo(extra, success, result)
-  channel_get_users("channel#id" .. result.peer_id, returnidschan, {chat_id = "-100"..result.peer_id, receiver = extra, title = result.title, about = result.about, username = result.username})
+local function channelinfo(cb_extra, success, result)
+  channel_get_users("channel#id" .. result.peer_id, returnidschan, {chat_id = "-100"..result.peer_id, receiver = cb_extra, title = result.title, about = result.about, username = result.username})
 end
 
 
-local function channel_username(extra, success, result)
+local function channel_username(cb_extra, success, result)
     if success == 1 then
       if result.peer_type == "channel" then
-        channel_get_users("channel#id" .. result.peer_id, returnidschan, {chat_id = "-100"..result.peer_id, receiver = extra.receiver, title = result.title, about = result.about, username= result.username})
+        channel_get_users("channel#id" .. result.peer_id, returnidschan, {chat_id = "-100"..result.peer_id, receiver = cb_extra.receiver, title = result.title, about = result.about, username= result.username})
       else
-        send_large_msg(extra.receiver, "Error: username is not of a channel @"..result.username)
+        send_large_msg(cb_extra.receiver, "Error: username is not of a channel @"..result.username)
       end
     else
-      send_large_msg(extra.receiver, "Error: username does not exist || I'm on flood wait @" .. extra.username)
+      send_large_msg(cb_extra.receiver, "Error: username does not exist || I'm on flood wait @" .. cb_extra.username)
     end
 end
 
