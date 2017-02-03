@@ -108,7 +108,7 @@ local function run(msg, matches)
     send_large_msg(receiver, run_bash("curl ipinfo.io/ip"))
   end
   if matches[1] == "!speedtest" then
-    send_large_msg(receiver, run_bash("speedtest"))
+    send_large_msg(receiver, run_bash("speedtest --simple"))
   end
   if matches[1] == "!uptime" then
     send_large_msg(receiver, run_bash("uptime"))

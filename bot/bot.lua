@@ -211,16 +211,21 @@ function create_config( )
   -- A simple config with basic plugins and ourselves as privileged user
   config = {
     enabled_plugins = {
-      "id",
-      "delmsg",
-      "mute",
-      "join",
-      "sudo",
-      "plugins",
-      "moderation"},
-    sudo_users = {our_id},
-    disabled_channels = {},
-    moderation = {data = 'data/moderation.json'}
+    "plugins",
+    "sudo",
+    "join",
+    "mute",
+    "delmsg",
+    "id",
+    "moderation",
+    "user",
+    "leave",
+  },
+  moderation = {
+    data = "data/moderation.json"
+  },
+  sudo_users = {our_id},
+  LOG_ID = "channel#id00000000"
   }
   serialize_to_file(config, './data/config.lua')
   print ('saved config into ./data/config.lua')

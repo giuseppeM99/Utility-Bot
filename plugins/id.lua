@@ -88,6 +88,7 @@ local function returnidschan(cb_extra, success, result)
   channel.id = cb_extra.chat_id
   channel.username = cb_extra.username or nil
   channel.about = cb_extra.about or nil
+  channel.participants_count = cb_extra.participants_count or #result +1
   local receiver = cb_extra.receiver
   local i = 0
   channel.users = {}
@@ -104,14 +105,14 @@ local function returnidschan(cb_extra, success, result)
 end
 
 local function channelinfo(cb_extra, success, result)
-  channel_get_users("channel#id" .. result.peer_id, returnidschan, {chat_id = "-100"..result.peer_id, receiver = cb_extra, title = result.title, about = result.about, username = result.username})
+  channel_get_users("channel#id" .. result.peer_id, returnidschan, {chat_id = "-100"..result.peer_id, receiver = cb_extra, title = result.title, about = result.about, username = result.username, participants_count = result.participants_count})
 end
 
 
 local function channel_username(cb_extra, success, result)
     if success == 1 then
       if result.peer_type == "channel" then
-        channel_get_users("channel#id" .. result.peer_id, returnidschan, {chat_id = "-100"..result.peer_id, receiver = cb_extra.receiver, title = result.title, about = result.about, username= result.username})
+        channel_get_users("channel#id" .. result.peer_id, returnidschan, {chat_id = "-100"..result.peer_id, receiver = cb_extra.receiver, title = result.title, about = result.about, username= result.username, participants_count = result.participants_count})
       else
         send_large_msg(cb_extra.receiver, "Error: username is not of a channel @"..result.username)
       end
@@ -199,7 +200,7 @@ return {
     "!ids? (chat) (-100%d+)$",
     "!ids? (chat) (-%d+)$",
     "!ids? (chat) (@?%a%S+)$",
-    "!id (.*)$"
+    "!id (@?%a%S+)$"
   },
   run = run
 }
