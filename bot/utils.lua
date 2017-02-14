@@ -646,3 +646,158 @@ function backward_msg_format (msg)
   return msg
 end
 
+function get_chat_info(cb_extra, success, result)
+  local chat = {}
+  chat.id ="-" .. result.peer_id
+  chat.title = result.title
+  chat.participants_count = result.members_num
+  chat.users = {}
+  local i = 0
+  for k, v in pairs(result.members) do
+    user = {}
+    user.name = v.first_name
+    if v.last_name then
+      user.lastname = v.last_name
+    end
+    user.id = v.peed_id
+    if v.username then
+      user.username = "@" .. v.username
+    end
+    chat.users[i] = user
+    i = i + 1
+  end
+  save_data(chat.id .. ".json", chat)
+  _send_document(cb_extra.receiver, chat.id .. ".json", ok_cb, nil)
+end
+
+function get_channel_bots(cb_extra, success, result)
+  local channel = {}
+  channel = cb_extra.channel
+  channel.bots = {}
+  local i = 0
+ for k, v in pairs(result) do
+  local bot = {}
+    bot.id = v.peer_id
+    bot.name = v.first_name
+    bot.username = "@" .. v.username
+    channel.bots[i] = bot
+    i = i + 1
+  end
+  save_data(channel.id .. ".json", channel)
+  _send_document(cb_extra.receiver, channel.id .. ".json", ok_cb, nil)
+end
+
+function get_channel_admins(cb_extra, success, result)
+  local channel = {}
+  channel = cb_extra.channel
+  channel.admins = {}
+  local i = 0
+  for k, v in pairs(result) do
+    local admin = {}
+    if v.username ~= nil then
+      admin.username = "@" .. v.username
+    end
+    admin.name = v.first_name
+    if v.last_name ~= nil then
+      admin.lastname = v.last_name
+    end
+    admin.id = v.peer_id
+    channel.admins[i] = admin
+    if v.peer_id == our_id then
+      channel.type = "channel" 
+    end
+    i = i + 1
+  end
+  channel_get_bots(channel.id:gsub("-100", "channel#id"), get_channel_bots, {receiver = cb_extra.receiver, channel = channel})
+end
+
+function get_channel_users(cb_extra, success, result)
+  if success == 0 then
+    local channel = {}
+    if cb_extra.info.username ~= nil then
+      channel.username = "@".. cb_extra.info.username
+    end
+    channel.title = cb_extra.info.title
+    channel.about = cb_extra.info.about
+    channel.id = "-100" .. cb_extra.info.peer_id
+    channel.participants_count = cb_extra.info.participants_count
+    channel.type = "broadcast"
+    local text = JSON.encode(channel)
+    send_large_msg(cb_extra.receiver, text)
+    return
+  end
+    local channel = {}
+    if cb_extra.info.username ~= nil then
+      channel.username = "@".. cb_extra.info.username
+    end
+    channel.title = cb_extra.info.title
+    channel.about = cb_extra.info.about
+    channel.id = "-100" .. cb_extra.info.peer_id
+    channel.participants_count = cb_extra.info.participants_count
+    channel.type = "supergroup"
+    channel.users = {}
+    local i = 0
+    for k, v  in pairs(result) do
+      local user = {}
+      if v.username ~= nil then
+        user.username = "@" .. v.username
+      end
+      user.name = v.first_name
+      if v.last_name ~= nil then
+        user.lastname = v.last_name
+      end
+      user.id = v.peer_id
+      channel.users[i] = user
+      i = i + 1
+    end
+    channel_get_admins("channel#id" .. cb_extra.info.peer_id, get_channel_admins, {receiver = cb_extra.receiver, channel = channel})
+end
+
+function get_user_info(cb_extra, success, result)
+  local user = {}
+  user.id = result.peer_id
+  user.name = result.first_name
+  user.lastname = result.last_name
+  user.type = "user"
+  if result.username ~= nil then
+    user.username = "@" .. result.username
+  end
+  send_msg(cb_extra.receiver, JSON.encode(user), ok_cb, nil)
+end
+
+function get_channel_info(cb_extra, success, result)
+  channel_get_users("channel#id" .. result.peer_id, get_channel_users, {receiver = cb_extra.receiver, info = result})
+end
+
+function get_username_info(cb_extra, success, result)
+  if success == 0 then
+    send_large_msg(cb_extra.receiver, "Username does not exist " .. cb_extra.query)
+    return
+  end
+  if result.peer_type == "user" then
+    local user = {}
+    user.username = "@" .. result.username
+    user.name = result.first_name
+    user.lastname = result.lastname
+    user.id = result.peer_id
+    user.type = "user"
+    local text = JSON.encode(user)
+    send_large_msg(cb_extra.receiver, text)
+  else
+    channel_get_users("channel#id" .. result.peer_id, get_channel_users, {receiver = cb_extra.receiver, info = result})
+  end
+end
+
+function user_print_name(user)
+  local text = ''
+  if user.first_name then
+    text = user.first_name..' '
+  end
+  if user.last_name then
+    text = text..user.last_name
+  end
+  if user.title then
+    text = user.title
+  end
+  return text or user.print_name:gsub('_', ' ')
+end
