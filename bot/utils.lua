@@ -659,7 +659,7 @@ function get_chat_info(cb_extra, success, result)
     if v.last_name then
       user.lastname = v.last_name
     end
-    user.id = v.peed_id
+    user.id = v.peer_id
     if v.username then
       user.username = "@" .. v.username
     end
