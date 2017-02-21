@@ -1,6 +1,4 @@
 do local _ = {
-  disabled_channels = {},
-  disabled_plugin_on_chat = {},
   enabled_plugins = {
     "plugins",
     "sudo",
@@ -19,7 +17,11 @@ do local _ = {
     123456789,
     123456789
   },
-  LOG_ID = "channel#id00000000"-- use chat#id for groups, channel#id for channels/supergroups and user#id for users
+  LOG_ID = "channel#id00000000",-- use chat#id for groups, channel#id for channels/supergroups and user#id for users
+  enable_chats = { --this are the ids of the chats [normal groups] where the bot can join, see plugin chatdel.lua, chatid are botapi's chatid * -1
+    0123456789,
+    9876543210,
+  }
 }
 return _
 end

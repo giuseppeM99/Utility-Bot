@@ -37,15 +37,15 @@ local function on_getting_dialogs(cb_extra,success,result)
     local dialogs={}
     for i, v in pairs(result) do
       if v.peer.peer_type == "channel" then
-        response = response..'\n'..str2emoji(":busts_in_silhouette:")..' '..string.gsub(v.peer.print_name, '_', ' ')..': '..v.peer.peer_id
+        response = response..'\n'..str2emoji(":busts_in_silhouette:")..' '..v.peer.title..': '..v.peer.peer_id
         count_supergroups = count_supergroups + 1
       end
       if v.peer.peer_type == "chat" then
-        response = response..'\n'..str2emoji(":biohazard:")..' '..string.gsub(v.peer.print_name, '_', ' ')..': '..v.peer.peer_id
+        response = response..'\n'..str2emoji(":biohazard:")..' '.. v.peer.title ..': '..v.peer.peer_id
         count_groups = count_groups + 1
       end
       if v.peer.peer_type == "user" then
-        response = response..'\n'..str2emoji(":bust_in_silhouette:")..' '..string.gsub(v.peer.print_name, '_', ' ')..': '..v.peer.peer_id
+        response = response..'\n'..str2emoji(":bust_in_silhouette:")..' '..user_print_name(v.peer)..': '..v.peer.peer_id
         count_users = count_users + 1
       end
     end

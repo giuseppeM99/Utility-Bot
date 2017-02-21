@@ -47,12 +47,6 @@ function msg_valid(msg)
     return false
   end
 
-  -- Before bot was started
---  if msg.date < now then
---   print('\27[36mNot valid: old msg\27[39m')
---   return false
--- end
-
 --Don't process alredy readed messages
   if msg.unread == 0 then
     print('\27[36mNot valid: readed\27[39m')
@@ -66,11 +60,6 @@ function msg_valid(msg)
 
   if not msg.from.id then
     print('\27[36mNot valid: From id not provided\27[39m')
-    return false
-  end
-
-  if msg.from.id == our_id then
-    print('\27[36mNot valid: Msg from our id\27[39m')
     return false
   end
 
@@ -98,9 +87,6 @@ function pre_process_service_msg(msg)
     -- wipe the data to allow the bot to read service messages
     if msg.out then
       msg.out = false
-    end
-    if msg.from.id == our_id then
-      msg.from.id = 0
     end
   end
   return msg
@@ -284,12 +270,10 @@ function load_data(filename)
 end
 
 function save_data(filename, data)
-
   local s = JSON.encode(data)
   local f = io.open(filename, 'w')
   f:write(s)
   f:close()
-
 end
 
 -- Call and postpone execution for cron plugins
