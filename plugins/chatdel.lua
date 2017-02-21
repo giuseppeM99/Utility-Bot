@@ -38,7 +38,7 @@ local function run(msg, matches)
     end
   end
   if msg.action.link_issuer then
-    if msg.to.type == "chat" then
+    if msg.to.type == "chat" and msg.from.id == our_id then
       if is_enable(msg.to.id) then
         snoop_msg("I've joined the chat " ..msg.to.title .. " [-" .. msg.to.id .."] via invite link")
         chat_info("chat#id" .. msg.to.id, get_chat_info, {receiver = _config.LOG_ID})
@@ -49,7 +49,7 @@ local function run(msg, matches)
           snoop_msg("Error: can't leave -" .. msg.to.id)
         end
       end
-    elseif msg.to.type == "channel" then
+    elseif msg.to.type == "channel" and msg.from.id == our_id then
       snoop_msg("I've joined the channel " ..msg.to.title .. " [-100" .. msg.to.id .."] via invite link")
       if not channel_info("channel#id" .. msg.to.id, get_channel_info, {receiver = _config.LOG_ID}) then
         snoop_msg("Error can't leave -100" .. msg.to.id)
