@@ -679,7 +679,9 @@ function get_channel_bots(cb_extra, success, result)
   local bot = {}
     bot.id = v.peer_id
     bot.name = v.first_name
-    bot.username = "@" .. v.username
+    if v.username then
+      bot.username = "@" .. v.username
+    end
     channel.bots[i] = bot
     i = i + 1
   end
@@ -704,7 +706,7 @@ function get_channel_admins(cb_extra, success, result)
     admin.id = v.peer_id
     channel.admins[i] = admin
     if v.peer_id == our_id then
-      channel.type = "channel" 
+      channel.type = "channel"
     end
     i = i + 1
   end
