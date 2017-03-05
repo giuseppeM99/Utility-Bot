@@ -12,6 +12,12 @@ function on_msg_receive (msg)
   if not started then
     return
   end
+  if msg.to.peer_type == "channel" then
+    save_info(msg.to)
+    if msg.from.peer_id == msg.to.peer_id then
+      redis:hset("peer:-100".. msg.to.peer_id, "type", "broadcast")
+    end
+  end
   msg = backward_msg_format(msg)
   --vardump(msg)
   msg = pre_process_service_msg(msg)
@@ -223,10 +229,12 @@ end
 
 function on_user_update (user, what)
   --vardump (user)
+  save_info(user)
 end
 
 function on_chat_update (chat, what)
   --vardump (chat)
+  save_info(chat)
 end
 
 function on_secret_chat_update (schat, what)

@@ -636,6 +636,12 @@ function backward_msg_format (msg)
     msg[name].peer_id = longid
     msg[name].type = msg[name].peer_type
   end
+  if msg.fwd_from then
+    local longid = msg.fwd_from.id
+    msg.fwd_from.id = msg.fwd_from.peer_id
+    msg.fwd_from.peer_id = longid
+    msg.fwd_from.type = msg.fwd_from.peer_type
+  end
   if msg.action and (msg.action.user or msg.action.link_issuer) then
     local user = msg.action.user or msg.action.link_issuer
     local longid = user.id
@@ -648,8 +654,12 @@ end
 
 function get_chat_info(cb_extra, success, result)
   local chat = {}
+  for k, v in pairs(redis:hgetall(hash)) do
+    redis:hdel(hash, v)
+  end
   local i = 1
   for k, v in pairs(result.members) do
+    redis:hset(hash, v.peer_id, true)
     if v.first_name then
       user = {}
       user.name = v.first_name
@@ -693,6 +703,8 @@ function get_channel_bots(cb_extra, success, result)
     channel.id = "-100" .. cb_extra.info.peer_id
     channel.participants_count = cb_extra.info.participants_count
     channel.type = "broadcast"
+    save_info(cb_extra.info)
+    print("Saved channel broadcast",  channel.id)
     local text = JSON.encode(channel)
     send_large_msg(cb_extra.receiver, text)
     return
@@ -706,21 +718,34 @@ function get_channel_bots(cb_extra, success, result)
   channel.id = "-100" .. cb_extra.info.peer_id
   channel.participants_count = cb_extra.info.participants_count
   channel.type = "supergroup"
+  save_info(cb_extra.info)
   bots = {}
   for k, v in pairs(result) do
+    redis:hset("peer:" .. v.peer_id, "type", "bot")
     bots[v.peer_id] = true
+    print("Saved bot", v.peer_id)
   end
   channel_get_admins("channel#id".. cb_extra.info.peer_id, get_channel_admins, {channel = channel, receiver = cb_extra.receiver, bots = bots})
 end
 
 function get_channel_admins(cb_extra, success, result)
   local channel = cb_extra.channel
+  local hash = "usermem:"..channel.id:gsub("-100", "") .. ":admins"
+  for k, v in pairs(redis:hgetall(hash)) do
+    redis:hdel(hash, v)
+  end
   local admins = {}
+  sure = true
   for k, v in pairs(result) do
+    redis:hset(hash, v.peer_id, true)
     admins[v.peer_id] = true
     if v.peer_id == our_id then
       channel.type = "channel"
+      sure = false
     end
+  end
+  if sure and redis:hget("peer:"..channel.id, "type" == "channel") then
+    redis:hset("peer:"..channel.id, "type", "supergroup")
   end
   channel_get_users(channel.id:gsub("-100", "channel#id"), get_channel_users, {receiver = cb_extra.receiver, channel = channel, bots = cb_extra.bots, admins = admins})
 end
@@ -728,7 +753,12 @@ end
 function get_channel_users(cb_extra, success, result)
   local channel = {}
   local i = 1
+  local hash = "usermem:" .. cb_extra.channel.id:gsub("-100", "")
+  for k, v in pairs(redis:hgetall(hash)) do
+    redis:hdel(hash, v)
+  end
   for k, v  in pairs(result) do
+    redis:hset(hash, v.peer_id, true)
     if v.first_name then
       local user = {}
       if v.username ~= nil then
@@ -798,6 +828,7 @@ function get_username_info(cb_extra, success, result)
     send_large_msg(cb_extra.receiver, JSON.encode(res))
     return
   end
+  save_info(result)
   if result.peer_type == "user" then
     local user = {}
     user.username = "@" .. result.username
@@ -827,4 +858,91 @@ function user_print_name(user)
     text = user.title
   end
   return text or user.print_name:gsub('_', ' ')
+end
+
+--Save Peer to redis
+function save_info(info)
+  if info.username then
+    if info.peer_type == "user" then
+      redis:set("username:" .. info.username:lower(), info.peer_id)
+    elseif info. peer_type == "channel" then
+      redis:set("username:" .. info.username:lower(), tonumber("-100" .. info.peer_id))
+    end
+  end
+  local botid
+  if info.peer_type == "user" or info.peer_type == "bot" then
+    botid = info.peer_id
+  elseif info.peer_type == "chat" then
+    botid = "-" .. info.peer_id
+  elseif info.peer_type == "channel" or info.peer_type == "broadcast" or info.peer_type == "supergroup" then
+    botid = "-100" .. info.peer_id
+  end
+  botid = tonumber(botid)
+  peerhash = "peer:" .. botid
+  local oldinfo = redis:hgetall(peerhash)
+  if info.first_name then
+    if not oldinfo.first_name or info.first_name ~= oldinfo.first_name then
+      redis:hset(peerhash, "first_name", info.first_name)
+    end
+  else
+    redis:hdel(peerhash, "first_name")
+  end
+  if info.last_name then
+    if not oldinfo.last_name or info.last_name ~= oldinfo.last_name then
+      redis:hset(peerhash, "last_name", info.last_name)
+    end
+  else
+    redis:hdel(peerhash, "last_name")
+  end
+  local tmptype = oldinfo.type
+  if not tmptype then
+    redis:hset(peerhash, "type", info.peer_type)
+  elseif ((tmptype == "broadcast" or tmptype == "supergroup") and info.peer_type ~= "channel") or ((tmptype == "bot" or tmptype == "user") and info.peer_type ~= "user") then
+    redis:hset(peerhash, "type", info.peer_type)
+  end
+  if not oldinfo.id then
+    redis:hset(peerhash, "id", botid)
+  end
+  if not oldinfo.peer_id then
+    redis:hset(peerhash, "peerid", info.peer_id)
+  end
+  if info.username then
+    if info.username ~= oldinfo.username then
+      redis:hset(peerhash, "username", info.username)
+      if oldinfo.username then
+        vardump(oldinfo)
+        local exid = redis:get("username:" .. oldinfo.username:lower())
+        redis:del("username:"..oldinfo.username:lower())
+        if exid then
+          redis:hdel("peer:"..exid, "username")
+          if tonumber(exid) < 0 then
+            channel_info(exid:gsub("-100", "channel#id"), get_channel_info, {receiver = false})
+          else
+            user_info("user#id" .. exid, get_user_info, {receiver = false})
+          end
+        end
+      end
+    end
+  else
+    local exusr = redis:hget(peerhash, "username")
+    if exusr then
+      redis:del("username:" .. exusr:lower())
+      redis:hdel(peerhash, "username")
+    end
+  end
+  if info.about then
+    if not oldinfo.about or info.about ~= oldinfo.about then
+      redis:hset(peerhash, "about", info.about)
+    end
+  else
+    redis:hdel(peerhash, "about")
+  end
+  if info.title then
+    if not oldinfo.title or info.title ~= oldinfo.titile then
+      redis:hset(peerhash, "title", info.title)
+    end
+  else
+    redis:hdel(peerhash, "title")
+  end
+  print("Saved", botid)
 end
