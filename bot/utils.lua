@@ -654,6 +654,7 @@ end
 
 function get_chat_info(cb_extra, success, result)
   local chat = {}
+  hash = "usermem:" .. result.peer_id
   for k, v in pairs(redis:hgetall(hash)) do
     redis:hdel(hash, v)
   end
@@ -695,9 +696,7 @@ end
 function get_channel_bots(cb_extra, success, result)
   if success == 0 then
     local channel = {}
-    if cb_extra.info.username ~= nil then
-      channel.username = "@".. cb_extra.info.username
-    end
+    channel.username = cb_extra.info.username
     channel.title = cb_extra.info.title
     channel.about = cb_extra.info.about
     channel.id = "-100" .. cb_extra.info.peer_id
@@ -710,9 +709,7 @@ function get_channel_bots(cb_extra, success, result)
     return
   end
   local channel = {}
-  if cb_extra.info.username ~= nil then
-    channel.username = cb_extra.info.username
-  end
+  channel.username = cb_extra.info.username
   channel.title = cb_extra.info.title
   channel.about = cb_extra.info.about
   channel.id = "-100" .. cb_extra.info.peer_id
@@ -803,9 +800,7 @@ function get_user_info(cb_extra, success, result)
     user.name = result.first_name
     user.last_name = result.last_name
     user.type = "user"
-    if result.username ~= nil then
-      user.username = result.username
-    end
+    user.username = result.username
     res = {
       ["ok"] = true,
       ["result"] = user
@@ -831,7 +826,7 @@ function get_username_info(cb_extra, success, result)
   save_info(result)
   if result.peer_type == "user" then
     local user = {}
-    user.username = "@" .. result.username
+    user.username =  result.username
     user.name = result.first_name
     user.last_name = result.last_name
     user.id = result.peer_id
