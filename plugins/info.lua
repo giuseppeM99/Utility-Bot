@@ -14,13 +14,13 @@ local function run(msg, matches)
     if matches[1]:starts("@") then
       if not user_info(matches[1], get_user_info, {receiver = get_receiver(msg)}) then
         if not channel_info(matches[1], get_channel_info, {receiver = get_receiver(msg)}) then
-          resolve_username(matches[1]:gsub("@", ""),get_username_info, {receiver = get_receiver(msg), query = matches[1]})
+          resolve_username(matches[1]:gsub("@", ""),get_username_info, {receiver = get_receiver(msg), query = matches[1]:gsub("@", "")})
         end
-      end        
+      end
     else
       if not user_info("@" .. matches[1], get_user_info, {receiver = get_receiver(msg)}) then
         if not channel_info("@" .. matches[1], get_channel_info, {receiver = get_receiver(msg)}) then
-          resolve_username(matches[1], get_username_info, {receiver = get_receiver(msg), query = "@" .. matches[1]})
+          resolve_username(matches[1], get_username_info, {receiver = get_receiver(msg), query =  matches[1]})
         end
       end
     end
