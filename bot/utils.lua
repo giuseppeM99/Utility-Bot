@@ -933,7 +933,7 @@ function save_info(info)
     redis:hdel(peerhash, "about")
   end
   if info.title then
-    if not oldinfo.title or info.title ~= oldinfo.titile then
+    if not oldinfo.title or info.title ~= oldinfo.title then
       redis:hset(peerhash, "title", info.title)
     end
   else

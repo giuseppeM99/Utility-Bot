@@ -12,6 +12,7 @@ function on_msg_receive (msg)
   if not started then
     return
   end
+
   if msg.to.peer_type == "channel" then
     save_info(msg.to)
     if msg.from.peer_id == msg.to.peer_id then
